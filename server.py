@@ -1,53 +1,40 @@
-import asyncio, websockets, os
+import asyncio, os, logging
+import websockets
 from http import HTTPStatus
 
-# import http.server
-# import socketserver
-# from http import HTTPStatus
+# чтобы не спамило "opening handshake failed" трейсами
+logging.getLogger("websockets").setLevel(logging.WARNING)
 
-
-# class Handler(http.server.SimpleHTTPRequestHandler):
-#     def do_GET(self):
-#         self.send_response(HTTPStatus.OK)
-#         self.end_headers()
-#         msg = 'Ты написал %s' % (self.path)
-#         self.wfile.write(msg.encode())
-#
-#
-# port = int(os.getenv('PORT', 80))
-# print('Listening on port %s' % (port))
-# httpd = socketserver.TCPServer(('', port), Handler)
-# httpd.serve_forever()
-
-PORT = int(os.getenv('PORT', 80))
+PORT = int(os.getenv("PORT", "80"))
 clients = set()
 
-def process_request(path, request_headers):
-    # Если это не WebSocket (healthcheck/браузер) — ответим обычным HTTP 200
-    if request_headers.get("Upgrade", "").lower() != "websocket":
-        body = b"OK"
-        return HTTPStatus.OK, [("Content-Type", "text/plain")], body
-    return None
-
-async def handler(ws):
-    print("connect")
+async def ws_handler(ws, path=None):  # path оставлен для совместимости
     clients.add(ws)
     try:
         async for msg in ws:
-            print("recv:", msg)
-            await asyncio.gather(
-                *(c.send(msg) for c in clients if c != ws)
-            )
-    except Exception as e:
-        print("error:", e)
+            await asyncio.gather(*(c.send(msg) for c in clients if c is not ws))
     finally:
-        clients.remove(ws)
-        print("disconnect")
+        clients.discard(ws)
+
+async def process_request(path, request_headers):
+    # Если это НЕ WebSocket upgrade (браузер/healthcheck) — ответим обычным HTTP 200 "ok"
+    if request_headers.get("Upgrade", "").lower() != "websocket":
+        body = b"ok"
+        return (
+            HTTPStatus.OK,
+            [("Content-Type", "text/plain"), ("Content-Length", str(len(body)))],
+            body,
+        )
+    return None  # иначе продолжаем WebSocket handshake
 
 async def main():
-    print(f"server start:{PORT}")
-    async with websockets.serve(handler, "0.0.0.0", PORT, process_request=process_request):
-
+    async with websockets.serve(
+        ws_handler, "0.0.0.0", PORT,
+        process_request=process_request,
+        ping_interval=20, ping_timeout=20,
+    ):
         await asyncio.Future()
 
-asyncio.run(main())
+if __name__ == "__main__":
+    print(f"server start:{PORT}")
+    asyncio.run(main())
