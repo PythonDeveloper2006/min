@@ -18,6 +18,7 @@ print('Listening on port %s' % (port))
 httpd = socketserver.TCPServer(('', port), Handler)
 httpd.serve_forever()
 
+PORT1 = int(os.getenv('PORT', 81))
 clients = set()
 
 async def handler(ws):
@@ -36,8 +37,8 @@ async def handler(ws):
         print("disconnect")
 
 async def main():
-    print(f"server start:{PORT}")
-    async with websockets.serve(handler, "0.0.0.0", PORT):
+    print(f"server start:{PORT1}")
+    async with websockets.serve(handler, "0.0.0.0", PORT1):
         await asyncio.Future()
 
 asyncio.run(main())
