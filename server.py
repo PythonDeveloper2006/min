@@ -19,11 +19,11 @@ if __name__ == "__main__":
     # httpd = socketserver.TCPServer(('', port), Handler)
     # httpd.serve_forever()
 
-
     import asyncio, websockets, os
 
-    PORT = int(os.getenv('PORT', 80))
+    PORT = int(os.getenv("PORT", 80))
     clients = set()
+
 
     async def handler(ws):
         print("connect")
@@ -31,18 +31,25 @@ if __name__ == "__main__":
         try:
             async for msg in ws:
                 print("recv:", msg)
-                await asyncio.gather(
-                    *(c.send(msg) for c in clients if c != ws)
-                )
+                await asyncio.gather(*(c.send(msg) for c in clients if c != ws), return_exceptions=True)
         except Exception as e:
             print("error:", e)
         finally:
-            clients.remove(ws)
+            clients.discard(ws)
             print("disconnect")
 
+
+    async def process_request(path, headers):
+        if headers.get("Upgrade", "").lower() != "websocket":
+            body = b"ok"
+            return 200, [("Content-Type", "text/plain"), ("Content-Length", str(len(body)))], body
+
+
     async def main():
-        print("server start:9000")
-        async with websockets.serve(handler, "0.0.0.0", PORT):
+        print(f"server start:{PORT}")
+        async with websockets.serve(handler, "0.0.0.0", PORT, process_request=process_request):
             await asyncio.Future()
 
+
     asyncio.run(main())
+

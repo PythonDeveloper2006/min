@@ -16,7 +16,7 @@ if __name__ == "__main__":
             await ws.send(msg)
 
     async def main():
-        async with websockets.connect("ws://127.0.0.1:9000") as ws:
+        async with websockets.connect("wss://whale-app-t34ml.ondigitalocean.app") as ws:
             await asyncio.gather(
                 reader(ws),
                 writer(ws),
