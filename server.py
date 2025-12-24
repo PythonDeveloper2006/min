@@ -8,21 +8,39 @@ print('''
 ПРОГРАММА ЗАПУЩЕНА
 ''')
 
-import asyncio, websockets, os
-
+import sys
 import logging
+from websockets.exceptions import InvalidMessage
 
-class DropHandshakeNoise(logging.Filter):
+# важно: настроить логирование до запуска сервера
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, force=True)
+
+class DropWsNoise(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         msg = record.getMessage()
-        return not (
-            "opening handshake failed" in msg
-            or "did not receive a valid HTTP request" in msg
-        )
 
-ws_logger = logging.getLogger("websockets")
-ws_logger.addFilter(DropHandshakeNoise())
-ws_logger.setLevel(logging.INFO)
+        # по тексту
+        if ("opening handshake failed" in msg
+            or "did not receive a valid HTTP request" in msg
+            or "connection closed while reading HTTP request line" in msg):
+            return False
+
+        # по типу исключения (traceback)
+        if record.exc_info and record.exc_info[1]:
+            exc = record.exc_info[1]
+            if isinstance(exc, (EOFError, InvalidMessage)):
+                return False
+
+        return True
+
+root = logging.getLogger()
+for h in root.handlers:
+    h.addFilter(DropWsNoise())
+
+# на всякий случай: поднять порог именно для websockets
+for name in ("websockets", "websockets.server", "websockets.asyncio.server"):
+    logging.getLogger(name).setLevel(logging.ERROR)
+
 
 
 PORT = int(os.getenv('PORT', 80))
