@@ -8,6 +8,8 @@ print('''
 ПРОГРАММА ЗАПУЩЕНА
 ''')
 
+import asyncio, websockets, os
+
 import sys
 import logging
 from websockets.exceptions import InvalidMessage
