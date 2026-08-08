@@ -5,9 +5,18 @@ This App Platform service provides the current Nether Roads Map data to the desk
 ### Endpoints
 
 - `GET /api/map` returns roads, farms, portals, coordinates, and marker icons.
+- `PUT /api/map` saves an edited map to GitHub. It requires the `X-Map-Admin-Key` header.
 - `GET /healthz` is a lightweight health check.
 
-The source of truth for the map is `map.json`. Updating that file and redeploying the service publishes new map data without changing the client application.
+The source of truth for the map is `map.json` in the linked GitHub repository. The desktop editor sends complete map updates to the API; the API commits each update to GitHub, and App Platform redeploys from that commit.
+
+### App Platform environment variables
+
+- `GITHUB_TOKEN`: fine-grained GitHub token with read/write Contents access to the repository.
+- `GITHUB_REPO`: repository in `owner/name` form (defaults to `PythonDeveloper2006/min`).
+- `GITHUB_BRANCH`: branch to update (defaults to `main`).
+- `GITHUB_MAP_PATH`: JSON path in the repository (defaults to `map.json`).
+- `MAP_ADMIN_KEY`: separate editor key used by the desktop client.
 
 ## Getting Started
 
