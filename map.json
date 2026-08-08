@@ -1,11 +1,11 @@
 {
-  "version": 2,
+  "version": 3,
   "updatedAt": "2026-08-08",
   "dimension": "minecraft:the_nether",
   "routes": [
     { "id": "green", "name": "Зелёная", "color": "#61d27c", "x": 0, "z": 600, "axis": "z", "sign": 1 },
     { "id": "red", "name": "Красная", "color": "#f05e6e", "x": 1000, "z": 0, "axis": "x", "sign": 1 },
-    { "id": "yellow", "name": "Жёлтая", "color": "#f4c95d", "x": 0, "z": -128, "axis": "z", "sign": -1 },
+    { "id": "yellow", "name": "Жёлтая", "color": "#f4c95d", "x": 0, "z": -600, "axis": "z", "sign": -1 },
     { "id": "blue", "name": "Синяя", "color": "#6ba9ff", "x": -1870, "z": 0, "axis": "x", "sign": -1 }
   ],
   "markers": [
