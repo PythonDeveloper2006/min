@@ -1,3 +1,14 @@
+## Nether Roads Map API
+
+This App Platform service provides the current Nether Roads Map data to the desktop, Android, and PWA clients.
+
+### Endpoints
+
+- `GET /api/map` returns roads, farms, portals, coordinates, and marker icons.
+- `GET /healthz` is a lightweight health check.
+
+The source of truth for the map is `map.json`. Updating that file and redeploying the service publishes new map data without changing the client application.
+
 ## Getting Started
 
 We provide a sample app using Python that you can deploy on App Platform. These steps will get this sample application running for you using App Platform.

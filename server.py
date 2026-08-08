@@ -1,71 +1,92 @@
-print('''
-ПРОГРАММА ЗАПУЩЕНА
-ПРОГРАММА ЗАПУЩЕНА
-ПРОГРАММА ЗАПУЩЕНА
-ПРОГРАММА ЗАПУЩЕНА
-ПРОГРАММА ЗАПУЩЕНА
-ПРОГРАММА ЗАПУЩЕНА
-ПРОГРАММА ЗАПУЩЕНА
-''')
+"""Small read-only API for Nether Roads Map."""
 
-import asyncio, websockets, os
+from __future__ import annotations
 
-import sys
+import json
 import logging
-from websockets.exceptions import InvalidMessage
-
-# важно: настроить логирование до запуска сервера
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, force=True)
-
-class DropWsNoise(logging.Filter):
-    def filter(self, record: logging.LogRecord) -> bool:
-        msg = record.getMessage()
-
-        # по тексту
-        if ("opening handshake failed" in msg
-            or "did not receive a valid HTTP request" in msg
-            or "connection closed while reading HTTP request line" in msg):
-            return False
-
-        # по типу исключения (traceback)
-        if record.exc_info and record.exc_info[1]:
-            exc = record.exc_info[1]
-            if isinstance(exc, (EOFError, InvalidMessage)):
-                return False
-
-        return True
-
-root = logging.getLogger()
-for h in root.handlers:
-    h.addFilter(DropWsNoise())
-
-# на всякий случай: поднять порог именно для websockets
-for name in ("websockets", "websockets.server", "websockets.asyncio.server"):
-    logging.getLogger(name).setLevel(logging.ERROR)
+import os
+from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 
+BASE_DIR = Path(__file__).resolve().parent
+MAP_PATH = BASE_DIR / "map.json"
+PORT = int(os.environ.get("PORT", "8080"))
+CORS_ORIGIN = os.environ.get("CORS_ORIGIN", "*")
 
-PORT = int(os.getenv('PORT', 80))
-clients = set()
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("nether-roads-api")
 
-async def handler(ws):
-    print("connect")
-    clients.add(ws)
-    try:
-        async for msg in ws:
-            print("recv:", msg)
-            await asyncio.gather(
-                *(c.send(msg) for c in clients if c != ws)
+
+def load_map() -> dict:
+    with MAP_PATH.open("r", encoding="utf-8") as map_file:
+        payload = json.load(map_file)
+    if not isinstance(payload, dict) or not isinstance(payload.get("routes"), list) or not isinstance(payload.get("markers"), list):
+        raise ValueError("map.json must contain routes and markers arrays")
+    return payload
+
+
+class ApiHandler(BaseHTTPRequestHandler):
+    server_version = "NetherRoadsMapAPI/1.0"
+
+    def _send_json(self, status: HTTPStatus, payload: dict) -> None:
+        body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Access-Control-Allow-Origin", CORS_ORIGIN)
+        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        self._send_json(HTTPStatus.NO_CONTENT, {})
+
+    def do_GET(self) -> None:  # noqa: N802
+        if self.path == "/healthz":
+            self._send_json(HTTPStatus.OK, {"status": "ok"})
+            return
+
+        if self.path == "/api/map":
+            try:
+                payload = load_map()
+            except (OSError, ValueError, json.JSONDecodeError) as error:
+                logger.exception("Could not load map data: %s", error)
+                self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "map_data_unavailable"})
+                return
+            self._send_json(HTTPStatus.OK, payload)
+            return
+
+        if self.path == "/":
+            self._send_json(
+                HTTPStatus.OK,
+                {
+                    "service": "nether-roads-map-api",
+                    "status": "ok",
+                    "endpoints": ["/api/map", "/healthz"],
+                },
             )
-    except Exception as e:
-        print("error:", e)
+            return
+
+        self._send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+
+    def log_message(self, format_string: str, *args: object) -> None:
+        logger.info("%s - %s", self.address_string(), format_string % args)
+
+
+def main() -> None:
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), ApiHandler)
+    logger.info("Nether Roads Map API listening on port %s", PORT)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        logger.info("Stopping server")
     finally:
-        clients.remove(ws)
-        print("disconnect")
+        server.server_close()
 
-async def main():
-    print(f"server start:{PORT}")
-    async with websockets.serve(handler, "0.0.0.0", PORT):
-        await asyncio.Future()
 
-asyncio.run(main())
+if __name__ == "__main__":
+    main()

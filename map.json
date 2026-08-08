@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-08",
+  "dimension": "minecraft:the_nether",
+  "routes": [
+    { "id": "green", "name": "Зелёная", "color": "#61d27c", "x": 0, "z": 167, "axis": "z", "sign": 1 },
+    { "id": "red", "name": "Красная", "color": "#f05e6e", "x": 555, "z": 0, "axis": "x", "sign": 1 },
+    { "id": "yellow", "name": "Жёлтая", "color": "#f4c95d", "x": 0, "z": -128, "axis": "z", "sign": -1 },
+    { "id": "blue", "name": "Синяя", "color": "#6ba9ff", "x": -1870, "z": 0, "axis": "x", "sign": -1 }
+  ],
+  "markers": [
+    { "id": "farm-ghast", "type": "farm", "name": "Ферма гастов", "x": 364, "z": -241, "icon": "ghast-tear" },
+    { "id": "farm-wither-skeleton", "type": "farm", "name": "Ферма визер-скелетов", "x": 543, "z": -256, "icon": "wither-skull-3d-fixed" },
+    { "id": "farm-hoglin", "type": "farm", "name": "Ферма хоглинов", "x": 50, "z": -300, "icon": "leather" },
+    { "id": "farm-magma", "type": "farm", "name": "Ферма магмы", "x": -498, "z": -307, "icon": "magma" },
+    { "id": "farm-kvamp", "type": "farm", "name": "Ферма квамп", "x": -786, "z": -99, "icon": "froglight-inventory" },
+    { "id": "farm-gold", "type": "farm", "name": "Ферма золота", "x": -200, "z": 229, "icon": "gold" },
+    { "id": "farm-guardian", "type": "farm", "name": "Ферма гвардов", "x": -87, "z": -119, "icon": "prismarine-shard" },
+    { "id": "portal-jungle", "type": "portal", "name": "Портал в джунгли", "x": -100, "z": -300, "icon": "bamboo" },
+    { "id": "portal-underwater-ruins", "type": "portal", "name": "Портал в подводные руины", "x": -38, "z": -507, "icon": "brush" },
+    { "id": "portal-glacier", "type": "portal", "name": "Портал в ледники", "x": -105, "z": 56, "icon": "ice-inventory" },
+    { "id": "portal-gunpowder", "type": "portal", "name": "Портал на ферму пороха", "x": 20, "z": 75, "icon": "powder" },
+    { "id": "portal-slime", "type": "portal", "name": "Портал на ферму слизи", "x": 46, "z": 292, "icon": "slime" },
+    { "id": "portal-desert", "type": "portal", "name": "Портал в пустыню", "x": -100, "z": 525, "icon": "sand-inventory" },
+    { "id": "portal-witch", "type": "portal", "name": "Портал на ферму ведьм", "x": 968, "z": 33, "icon": "witch-3d" },
+    { "id": "portal-stronghold", "type": "portal", "name": "Портал в эндер-крепость", "x": 187, "z": -3, "icon": "ender" },
+    { "id": "portal-base", "type": "portal", "name": "Портал на базу", "x": 93, "z": -17, "icon": "home" }
+  ]
+}
