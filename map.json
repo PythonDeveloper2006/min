@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "updatedAt": "2026-08-08",
+  "version": 4,
+  "updatedAt": "2026-08-10",
   "dimension": "minecraft:the_nether",
   "routes": [
     { "id": "green", "name": "Зелёная", "color": "#61d27c", "x": 0, "z": 600, "axis": "z", "sign": 1 },
